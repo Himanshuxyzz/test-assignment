@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import { Alert, Linking, Platform } from "react-native";
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -10,51 +11,57 @@ Notifications.setNotificationHandler({
   }),
 });
 
-/**
- * Initialize notifications - call this once at app startup
- * Returns true if permissions are granted
- */
-export const initializeNotifications = async (): Promise<boolean> => {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-
-  if (existingStatus === "granted") {
-    return true;
-  }
-
-  // Only request if not already determined
-  if (existingStatus === "undetermined") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    return status === "granted";
-  }
-
-  return false;
-};
+// Sample lesson IDs for random selection
+const LESSON_IDS = ["lesson-1", "lesson-2", "lesson-3", "lesson-4", "lesson-5"];
 
 /**
- * Check if notifications are permitted (without prompting)
+ * Get a random lesson ID
  */
-export const hasNotificationPermission = async (): Promise<boolean> => {
-  const { status } = await Notifications.getPermissionsAsync();
-  return status === "granted";
+const getRandomLessonId = (): string => {
+  const randomIndex = Math.floor(Math.random() * LESSON_IDS.length);
+  return LESSON_IDS[randomIndex];
 };
 
 /**
  * Schedule a local notification with a delay
+ * Requests permission if not already granted
  * @param title - Notification title
  * @param body - Notification body message
  * @param delaySeconds - Delay in seconds (2-5 seconds recommended)
+ * @param data - Optional data payload (e.g., lessonId for navigation)
  */
 export const scheduleNotification = async (
   title: string,
   body: string,
-  delaySeconds: number = 3
+  delaySeconds: number = 3,
+  data?: Record<string, unknown>
 ): Promise<string | undefined> => {
-  // Only check permission status, don't prompt
-  const hasPermission = await hasNotificationPermission();
+  // Check permission status
+  const { status } = await Notifications.getPermissionsAsync();
 
-  if (!hasPermission) {
-    console.warn("Notification permissions not granted");
-    return undefined;
+  // Request permission if not granted
+  if (status !== "granted") {
+    const { status: newStatus } = await Notifications.requestPermissionsAsync({
+      ios: {
+        allowAlert: true,
+        allowBadge: true,
+        allowSound: true,
+      },
+    });
+    if (newStatus !== "granted") {
+      Alert.alert(
+        "Notifications Disabled",
+        "Please enable notifications in settings to receive updates about your lessons.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Enable in Settings",
+            onPress: () => Linking.openSettings(),
+          },
+        ]
+      );
+      return undefined;
+    }
   }
 
   const identifier = await Notifications.scheduleNotificationAsync({
@@ -62,13 +69,14 @@ export const scheduleNotification = async (
       title,
       body,
       sound: true,
+      data: data || {},
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds: delaySeconds,
     },
   });
-  console.log(identifier);
+
   return identifier;
 };
 
@@ -84,20 +92,15 @@ export const NotificationMessages = {
     body: "Don't forget to complete your lessons today. Knowledge is power!",
     delay: 4,
   },
-  ACHIEVEMENT: {
-    title: "🏆 Great Progress!",
-    body: "You're doing amazing! Keep up the momentum with your studies.",
-    delay: 5,
-  },
-  WEBVIEW_LOADED: {
-    title: "✅ Content Loaded",
-    body: "All lessons are now ready for you. Tap any lesson to begin!",
-    delay: 2,
+  LESSON_UPDATE: {
+    title: "🎬 New Lesson Available!",
+    body: "A lesson has been updated. Tap to watch now!",
+    delay: 14,
   },
 } as const;
 
 /**
- * Send welcome notification (triggered by button)
+ * Send welcome notification (triggered on webview load and by button)
  */
 export const sendWelcomeNotification = async (): Promise<void> => {
   const { title, body, delay } = NotificationMessages.WELCOME;
@@ -113,9 +116,29 @@ export const sendReminderNotification = async (): Promise<void> => {
 };
 
 /**
- * Send WebView loaded notification
+ * Send lesson update notification with random lessonId
+ * When tapped, should navigate to VideoPlayer with the lessonId
  */
-export const sendWebViewLoadedNotification = async (): Promise<void> => {
-  const { title, body, delay } = NotificationMessages.WEBVIEW_LOADED;
-  await scheduleNotification(title, body, delay);
+export const sendLessonUpdateNotification = async (): Promise<void> => {
+  const { title, body, delay } = NotificationMessages.LESSON_UPDATE;
+  const lessonId = getRandomLessonId();
+  await scheduleNotification(title, body, delay, {
+    type: "openVideo",
+    lessonId,
+  });
+};
+
+/**
+ * Add listener for notification responses (when user taps notification)
+ * Returns a subscription that should be removed on cleanup
+ */
+export const addNotificationResponseListener = (
+  callback: (lessonId: string) => void
+): Notifications.EventSubscription => {
+  return Notifications.addNotificationResponseReceivedListener((response) => {
+    const data = response.notification.request.content.data;
+    if (data?.type === "openVideo" && data?.lessonId) {
+      callback(data.lessonId as string);
+    }
+  });
 };

@@ -11,8 +11,8 @@ import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import {
   sendWelcomeNotification,
   sendReminderNotification,
-  sendWebViewLoadedNotification,
-  initializeNotifications,
+  sendLessonUpdateNotification,
+  addNotificationResponseListener,
 } from "@/utils/notifications";
 
 const Home = () => {
@@ -20,10 +20,17 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const hasNotifiedRef = useRef(false);
 
-  // Initialize notification permissions check once on mount
+  // Set up notification tap listener
   useEffect(() => {
-    initializeNotifications();
-  }, []);
+    const subscription = addNotificationResponseListener((lessonId) => {
+      // Navigate to VideoPlayer when notification is tapped
+      navigation.navigate("VideoPlayer", { videoId: lessonId });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [navigation]);
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
@@ -41,7 +48,11 @@ const Home = () => {
     setIsLoading(false);
     if (!hasNotifiedRef.current) {
       hasNotifiedRef.current = true;
-      sendWebViewLoadedNotification();
+      // First: Welcome notification (3 sec delay)
+      sendWelcomeNotification();
+      // Second: Lesson update notification (8 sec delay = after welcome appears)
+      // This one opens VideoPlayer when tapped
+      sendLessonUpdateNotification();
     }
   };
 
