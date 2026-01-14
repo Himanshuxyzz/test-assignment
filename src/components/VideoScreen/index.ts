@@ -5,4 +5,3 @@ export { default as LessonResourceLinks } from "./LessonResourceLinks";
 export { default as LessonProgress } from "./LessonProgress";
 export { default as LessonHeader } from "./LessonHeader";
 export { default as LessonInstructorCard } from "./LessonInstructorCard";
-export { default as VideoControls } from "./VideoControls";
