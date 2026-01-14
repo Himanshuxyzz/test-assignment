@@ -4,6 +4,7 @@
     "slug": "test-assignment",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "test-assignment",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,

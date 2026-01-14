@@ -2,6 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { Home, VideoPlayer } from "@/screens";
+import linking from "./linking";
 
 const Stack = createNativeStackNavigator();
 
@@ -12,7 +13,7 @@ export type RootParamList = {
 
 const RootNavigation = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator
         screenOptions={{
           contentStyle: {
