@@ -1,15 +1,48 @@
-Packages i've used -
+# LMS Assignment
 
-1. @react-navigation/native
-2. @react-navigation/native-stack
-3. expo-video
-4. expo-notifications
-5. expo-linking
-6. react-native-webview
+### PACKAGES I'VE USED
 
-Steps to run the app -
+1. `expo-video` - For video playback.
+2. `expo-screen-orientation` - For orientation handling.
+3. `react-native-reanimated` - For smooth animations.
+4. `react-native-safe-area-context` - For safe area insets.
+5. `@expo/vector-icons` - For icons.
+6. `@react-navigation/native` - For navigation.
+7. `@react-navigation/native-stack` - For the native stack
+8. `react-native-reanimated` - For smooth animations.
+9. `@react-native-community/slider` - For custom slider used in the custom controls.
+10. `expo-linking` - For deep linking - exp://IP:PORT/--/video/1
+11. `expo-notifications` - For notifications.
+12. `expo-screen-orientation` - For orientation handling.
+13. `react-native-webview` - For webview here in this assignment i'm rendering the inline html in the webview.
+14. `StyleSheet` - used default styleSheet for styling.
 
-1. Clone the repository
-2. cd into the repository
-3. bun install
-4. bunx expo start -c
+## 🚀 Things Implemented
+
+- **WebView**: Implemented `react-native-webview` to render the inline html in the webview.
+- **Deep Linking**: Implemented deep linking using `expo-linking` to navigate to the video player screen.
+- **Custom Video Player**: Built on top of `expo-video`, featuring a fully custom-built UI for controls (play/pause, seek, fullscreen) and double tap to forward and backward.
+- **Fullscreen Handling**: seamless orientation locking and unlocking using `expo-screen-orientation` since we are using custom controls so we needed custom implementation of fullscreen handling with orientation handling to view video in landscope mode.
+- **Quality Switching**: Simulated video quality toggle (Auto, 720p, 480p, etc.).
+- **Skeleton Loading**: A consistent, animated skeleton loading state using a generic composition pattern `Skeleton` will help in creating the skeleton component for any component.
+- **Clean Architecture**: broke the repeated code into reusable component ensuring readability and maintainability with clear separation of concerns only where needed.
+
+## 📂 Project Structure
+
+The project follows a simple **domain-driven** and **common-components** structure under the `src` directory:
+
+```
+src/
+├── components/         # Reusable UI components
+│   ├── common/         # Generic components (Skeleton, Header, etc.)
+│   ├── home/           # Home screen specific components
+│   └── video/          # Video player specific components
+│   |__ videoScreen/    # Video screen specific components
+├── constants/          # Static data and configuration
+├── hooks/              # Custom hooks
+├── navigation/         # Navigation setup and deep linking config
+├── screens/            # Screen components (Home, VideoPlayer)
+├── styles/             # Global styles and theme constants
+├── types/              # TypeScript type definitions
+└── utils/              # Utility functions
+```
